@@ -293,19 +293,55 @@ h4 {
 }
 
 @media only screen and (max-width: 1599px) {
-    .tile {
-        width: calc(33.33% - 1rem);
+    .w-grid {
+        width: calc(100% - 1rem);
+    }
+    .w-bubble {
+        width: calc(50% - 1rem);
+    }
+    .w-radial,
+    .w-linear,
+    .w-bar,
+    .w-column,
+    .w-line,
+    .w-bullet,
+    .w-blank {
+        width: calc(25% - 1rem);
     }
 }
 
 @media only screen and (max-width: 1079px) {
-    .tile {
+    .w-grid {
+        width: calc(100% - 1rem);
+    }
+    .w-bubble {
         width: calc(50% - 1rem);
+    }
+    .w-radial,
+    .w-linear,
+    .w-bar,
+    .w-column,
+    .w-line,
+    .w-bullet,
+    .w-blank {
+        width: calc(25% - 1rem);
     }
 }
 
 @media only screen and (max-width: 1023px) {
-    .tile {
+    .w-grid {
+        width: calc(100% - 1rem);
+    }
+    .w-bubble {
+        width: calc(100% - 1rem);
+    }
+    .w-radial,
+    .w-linear,
+    .w-bar,
+    .w-column,
+    .w-line,
+    .w-bullet,
+    .w-blank {
         width: calc(100% - 1rem);
     }
 }
@@ -316,9 +352,10 @@ h4 {
     }
 }
 
-.tile:last-child {
+
+/* .tile:last-child {
     flex: 1 1 auto;
-}
+} */
 
 .tile:hover {
     border-color: #adb7bd;

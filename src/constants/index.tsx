@@ -62,13 +62,13 @@ export const icons = {
 };
 
 export const tileCatalogs = [
-    { name: 'Grid', tile: Grid, icon: icons.grid },
-    { name: 'Radial Gauge', tile: Grid, icon: icons.radialGauge },
-    { name: 'Linear Gauge', tile: Grid, icon: icons.linearGauge },
-    { name: 'Bar Chart', tile: Grid, icon: icons.barChart },
-    { name: 'Column Chart', tile: Grid, icon: icons.columnChart },
-    { name: 'Line Chart', tile: Grid, icon: icons.lineChart },
-    { name: 'Bubble Chart', tile: Grid, icon: icons.bubbleChart },
-    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph },
-    { name: 'Blank', tile: Grid, icon: icons.blank },
+    { name: 'Grid', tile: Grid, icon: icons.grid, width: "grid" },
+    { name: 'Radial Gauge', tile: Grid, icon: icons.radialGauge, width: "radial" },
+    { name: 'Linear Gauge', tile: Grid, icon: icons.linearGauge, width: "linear" },
+    { name: 'Bar Chart', tile: Grid, icon: icons.barChart, width: "bar" },
+    { name: 'Column Chart', tile: Grid, icon: icons.columnChart, width: "column" },
+    { name: 'Line Chart', tile: Grid, icon: icons.lineChart, width: "line" },
+    { name: 'Bubble Chart', tile: Grid, icon: icons.bubbleChart, width: "bubble" },
+    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph, width: "bullet" },
+    { name: 'Blank', tile: Grid, icon: icons.blank, width: "blank" },
 ];

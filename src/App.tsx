@@ -10,7 +10,7 @@ function App() {
   const getTiles = (): Array<TileType> => {
     const tileArray: Array<TileType> = [];
     for (let i = 0; i < 5; i++) {
-      tileArray.push({ name: tileCatalogs[i].name, key: i });
+      tileArray.push({ name: tileCatalogs[i].name, key: i, width: tileCatalogs[i].width });
     }
     setKey(5);
     return tileArray;
@@ -34,7 +34,9 @@ function App() {
 
   // adds a tile to the dashboard
   const addTile = (name: string) => {
-    setTiles([...tiles, { name: name, key: key }]);
+    const tileCatalog = tileCatalogs.find((item) => item.name === name);
+    setTiles([...tiles, { name: name, key: key, width: tileCatalog ? tileCatalog.width : "full" }]);
+    setKey(key + 1);
   };
 
   // removes a tile from the dashboard
@@ -148,7 +150,7 @@ function App() {
           {
             tiles.length ? (
               <React.Fragment>
-                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} onRemove={() => removeTile(index)} index={index} key={`tile-${item.key}`} />))}
+                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} width={item.width} onRemove={() => removeTile(index)} key={`tile-${item.key}`} />))}
               </React.Fragment>
             ) : (
               <div className="blank">

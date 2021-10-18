@@ -4,12 +4,12 @@ type Props = {
   header: String;
   content: any;
   onRemove: any;
-  index: number;
+  width: String;
 };
 
-const Tile: React.FC<Props> = ({ header, content, onRemove }) => {
+const Tile: React.FC<Props> = ({ header, content, onRemove, width }) => {
   return (
-    <div className="tile" draggable={true}>
+    <div className={`tile w-${width}`} draggable={true}>
       <div className="tile-container">
         <div className="tile-header">{header}</div>
         <div className="buttons">
