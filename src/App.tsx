@@ -17,32 +17,13 @@ function App() {
   };
 
   const [isWideMenu, setIsWideMenu] = useState<boolean>(false);
-  const [tileCatalog, setTileCatalog] = useState(tileCatalogs);
   const [tiles, setTiles] = useState<Array<TileType>>([]);
   const [dragSource, setDragSource] = useState<HTMLDivElement>();
   const [dropTarget, setDropTarget] = useState<HTMLDivElement>();
 
-  // generate some data to show in the tiles
-  // const getData = () => {
-  //   let data = [];
-  //   const today = new Date();
-  //   for (let i = 0; i < 12; i++) {
-  //     const sales = 100 + Math.random() * 800 + i * 50;
-  //     const expenses = 50 + Math.random() * 300 + i * 5;
-  //     data.push({
-  //       id: i,
-  //       date: today,
-  //       sales: sales,
-  //       expenses: expenses,
-  //       profit: sales - expenses,
-  //     });
-  //   }
-  //   return data;
-  // };
-
   // gets a tile content by name
   const getTileContent = (name: string) => {
-    tileCatalog.forEach((item) => {
+    tileCatalogs.forEach((item) => {
       if (item.name === name) {
         return <div style={{ backgroundColor: palette[1] }}>
           {item.tile}
@@ -107,8 +88,9 @@ function App() {
       dragSource.focus();
       // update state
       let tmpTiles = tiles.slice();
-      tmpTiles.splice(srcIndex, 1);
-      tmpTiles.splice(dstIndex, 0, tiles[srcIndex]);
+      let tmpTile = tmpTiles[srcIndex];
+      tmpTiles[srcIndex] = tmpTiles[dstIndex];
+      tmpTiles[dstIndex] = tmpTile;
       setTiles(tmpTiles);
     }
   }
@@ -149,7 +131,7 @@ function App() {
         </div>
         <React.Fragment>
           {
-            tileCatalog.map((item) => (
+            tileCatalogs.map((item) => (
               <div key={`Menu ${item.name}`} className="menu-item" title={item.name} onClick={() => addTile(item.name)}>
                 <svg width="64" height="64" viewBox="0 0 64 64">
                   {item.icon.map((entity, key) => (<React.Fragment key={`Menu Item ${key}`}>{entity}</React.Fragment>))}
@@ -166,7 +148,7 @@ function App() {
           {
             tiles.length ? (
               <React.Fragment>
-                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} onRemove={() => { }} index={index} key={`tile-${item.key}`} />))}
+                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} onRemove={() => removeTile(index)} index={index} key={`tile-${item.key}`} />))}
               </React.Fragment>
             ) : (
               <div className="blank">
