@@ -1,10 +1,10 @@
 import React from 'react';
 
 type Props = {
-  header: String;
+  header: string;
   content: any;
   onRemove: any;
-  width: String;
+  width: string;
 };
 
 const Tile: React.FC<Props> = ({ header, content, onRemove, width }) => {

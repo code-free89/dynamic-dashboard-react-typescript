@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { palette, tileCatalogs } from './constants';
+import { elementWidths, palette, tileCatalogs } from './constants';
 import { TileType } from './types';
 import Tile from './components/Tile';
 function App() {
@@ -61,7 +61,7 @@ function App() {
   const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     if (dragSource) {
       let tile = (event.target as HTMLDivElement).closest(".tile") as HTMLDivElement;
-      if (tile !== dragSource && dragSource && tile && tile !== dragSource) {
+      if (dragSource && tile && tile !== dragSource) {
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
       }
@@ -83,39 +83,43 @@ function App() {
       // re-order HTML elements (optional here, we're updating the state later)
       const srcIndex = getIndex(dragSource);
       const dstIndex = getIndex(dropTarget);
-      const refChild = srcIndex > dstIndex ? dropTarget : dropTarget.nextElementSibling;
-      if(dragSource.parentElement)
-        dragSource.parentElement.insertBefore(dragSource, refChild);
+      // const refChild = srcIndex > dstIndex ? dropTarget : dropTarget.nextElementSibling;
+      // if(dragSource.parentElement)
+      //   dragSource.parentElement.insertBefore(dragSource, refChild);
       // focus and view on the tile that was dragged
       dragSource.focus();
       // update state
+      console.log(dragSource);
       let tmpTiles = tiles.slice();
-      let tmpTile = tmpTiles[srcIndex];
-      tmpTiles[srcIndex] = tmpTiles[dstIndex];
-      tmpTiles[dstIndex] = tmpTile;
+      if (elementWidths[tmpTiles[srcIndex].width] === elementWidths[tmpTiles[dstIndex].width]) {
+        let tmpTile = tmpTiles[srcIndex];
+        tmpTiles[srcIndex] = tmpTiles[dstIndex];
+        tmpTiles[dstIndex] = tmpTile;
+      }
       setTiles(tmpTiles);
     }
   }
 
   const onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
-    if(dragSource)
+    if (dragSource)
       dragSource.className = dragSource.className.replaceAll("drag-source", "");
-    if(dropTarget)
-    dropTarget.className = dropTarget.className.replaceAll("drag-over", "");
+    if (dropTarget)
+      dropTarget.className = dropTarget.className.replaceAll("drag-over", "");
   }
 
   useEffect(() => {
     if (dropTarget) {
+
       dropTarget.className += " drag-over";
     }
   }, [dropTarget]);
 
   function getIndex(e: HTMLDivElement) {
     const p = e.parentElement;
-    if(p) {
+    if (p) {
       for (let i = 0; i < p.children.length; i++) {
-          if (p.children[i] === e)
-              return i;
+        if (p.children[i] === e)
+          return i;
       }
     }
     return -1;
@@ -136,7 +140,7 @@ function App() {
             tileCatalogs.map((item) => (
               <div key={`Menu ${item.name}`} className="menu-item" title={item.name} onClick={() => addTile(item.name)}>
                 <svg width="64" height="64" viewBox="0 0 64 64">
-                  {item.icon.map((entity, key) => (<React.Fragment key={`Menu Item ${key}`}>{entity}</React.Fragment>))}
+                  {item.icon!.map((entity, key) => (<React.Fragment key={`Menu Item ${key}`}>{entity}</React.Fragment>))}
                 </svg>
                 <div className="menu-item-name">{item.name}</div>
               </div>
