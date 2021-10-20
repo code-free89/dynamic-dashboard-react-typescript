@@ -7,4 +7,5 @@ export interface TileType {
   row?: number;
   col?: number;
   color?: string;
+  type: string;
 }

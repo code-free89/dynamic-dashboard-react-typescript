@@ -292,7 +292,9 @@ h4 {
 }
 
 .blank-tile {
-    background: transparent;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
 }
 
 .w-x4 {

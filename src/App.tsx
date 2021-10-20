@@ -1,33 +1,87 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { palette, tileCatalogs } from './constants';
+import { palette, testCatalogs, tileCatalogs } from './constants';
 import { TileType } from './types';
 import Tile from './components/Tile';
-import { getIndex, getTileContent } from './constants/functions';
+import { getIndex, getTileContent, isBlankElement } from './constants/functions';
 function App() {
-  const [blankTile, setBlankTile] = useState<TileType>({
-    name: "",
-    width: 4,
-    key: 1000,
-  });
-  const [key, setKey] = useState<number>(0);
+
+  const reOrder = (srcTiles: TileType[]) => {
+    let row = 0, col = 0;
+    const tmpTiles: TileType[] = [];
+    let index = 0;
+    for (let i = 0; i < srcTiles.length; i++) {
+      if (srcTiles[i].name === "" && srcTiles[i].width > 1) {
+        for (let j = 0; j < srcTiles[i].width; j++) {
+          tmpTiles.push({
+            name: "",
+            key: index,
+            width: 1,
+            row: row,
+            col: col + j,
+            type: "real",
+            color: "transparent",
+          });
+          index++;
+        }
+      } else {
+        tmpTiles.push({
+          ...srcTiles[i],
+          key: index,
+          row: row,
+          col: col,
+          type: "real",
+        });
+        index++;
+      }
+      col += srcTiles[i].width;
+      if (srcTiles[i + 1]) {
+        if ((col + srcTiles[i + 1].width) > 4) {
+          for (let j = col; j < 4; j++) {
+            tmpTiles.push({
+              key: index,
+              name: "",
+              width: 1,
+              row: row,
+              col: j,
+              color: "transparent",
+              type: "real",
+            });
+            index++;
+          }
+          row++;
+          col = 0;
+        }
+      } else {
+        for (let j = col; j < 4; j++) {
+          tmpTiles.push({
+            key: index,
+            name: "",
+            width: 1,
+            row: row,
+            col: col,
+            color: "transparent",
+            type: "real",
+          });
+          index++;
+        }
+      }
+    };
+    return tmpTiles;
+  }
 
   // tiles currently in use
   const getTiles = (): Array<TileType> => {
     const tileArray: Array<TileType> = [];
-    let row = 0;
-    let col = 0;
-    for (let i = 0; i < 5; i++) {
-      tileArray.push({ name: tileCatalogs[i].name, key: i, width: tileCatalogs[i].width, row: row, col: col, color: tileCatalogs[i].color });
-      col += tileCatalogs[i].width;
-      if (col > 3) {
-        col = 0;
-        row++;
-      }
+    for (let i = 0; i < testCatalogs.length; i++) {
+      tileArray.push({
+        name: testCatalogs[i].name,
+        width: testCatalogs[i].width,
+        color: testCatalogs[i].color,
+        type: testCatalogs[i].type,
+      });
     }
-    tileArray.push(blankTile);
-    setKey(5);
-    return tileArray;
+    return reOrder(tileArray);
   };
 
   const [isWideMenu, setIsWideMenu] = useState<boolean>(false);
@@ -38,13 +92,25 @@ function App() {
   // adds a tile to the dashboard
   const addTile = (name: string) => {
     const tileCatalog = tileCatalogs.find((item) => item.name === name);
-    setTiles([...tiles, { name: name, key: key, width: tileCatalog ? tileCatalog.width : 1, color: tileCatalog?.color }]);
-    setKey(key + 1);
+    if (tileCatalog) {
+      let tmpTiles = tiles.filter((item) => item.name !== "" || item.type === "real");
+      let i = tmpTiles.length - 1;
+      while (i >= 0) {
+        if (tmpTiles[i].name === "") tmpTiles.pop();
+        else break;
+        i--;
+      }
+      tmpTiles.push(tileCatalog);
+      tmpTiles = reOrder(tmpTiles);
+      setTiles(tmpTiles);
+    }
   };
 
   // removes a tile from the dashboard
   const removeTile = (tileIndex: number) => {
-    setTiles(tiles.filter((item, index) => index !== tileIndex));
+    let tmpTiles = tiles.filter((item, index) => index !== tileIndex && (item.name !== "" || item.type === "real"));
+    tmpTiles = reOrder(tmpTiles);
+    setTiles(tmpTiles);
   };
 
   // initialize component after it has been mounted
@@ -55,25 +121,49 @@ function App() {
   // drag start
   const onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     const target = event.target as HTMLDivElement;
-    target.className += " drag-source";
-    const dt = event.dataTransfer;
-    dt.effectAllowed = "move";
-    dt.setData('text', target.innerHTML);
-    setDragSource(target);
+    if (!target.className.includes("blank-tile")) {
+      target.className += " drag-source";
+      const dt = event.dataTransfer;
+      dt.effectAllowed = "move";
+      dt.setData('text', target.innerHTML);
+      setDragSource(target);
+    }
   }
 
   // drag over
   const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     if (dragSource) {
       let tile = (event.target as HTMLDivElement).closest(".tile") as HTMLDivElement;
-      const blankElement = document.getElementsByClassName("blank-tile")[0];
       if (tile && tile !== dragSource) {
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
       }
-      if (dropTarget !== tile) {
-        if (dropTarget && dropTarget !== blankElement)
-          dropTarget.className = dropTarget.className.replaceAll(" drag-over", "");
+      if (tile && dropTarget !== tile) {
+        let tmpTiles = tiles.slice();
+        if (tiles[getIndex(tile)].type === "real") {
+          if (dropTarget && getIndex(dropTarget) !== -1 && tiles[getIndex(dropTarget)].type === "fake" && tiles[getIndex(dropTarget)].width !== 4) {
+            const dropElement = tiles[getIndex(dropTarget)];
+            const dropIndex = getIndex(dropTarget);
+            tmpTiles.splice(dropIndex, 1);
+            for (let i = 0; i < dropElement.width; i++)
+              tmpTiles.splice(dropIndex, 0, {
+                name: "",
+                type: "real",
+                width: 1,
+              });
+          }
+          tmpTiles = tmpTiles.filter((item) => item.name !== "" || item.type === "real");
+          tmpTiles = reOrder(tmpTiles);
+          setTiles(tmpTiles);
+        }
+        if (dropTarget) {
+          if (dropTarget.children.length)
+            dropTarget.className = dropTarget.className.replaceAll(" drag-over", "");
+          else {
+            if (!dropTarget.className.includes("blank-tile"))
+              dropTarget.className += " blank-tile";
+          }
+        }
         if (tile)
           setDropTarget(tile);
       }
@@ -84,8 +174,12 @@ function App() {
   const onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
     if (dragSource)
       dragSource.className = dragSource.className.replaceAll(" drag-source", "");
-    if (dropTarget)
-      dropTarget.className = dropTarget.className.replaceAll(" drag-over", "");
+    if (dropTarget) {
+      if (dropTarget.children.length)
+        dropTarget.className = dropTarget.className.replaceAll(" drag-over", "");
+      else if (!dropTarget.className.includes("blank-tile"))
+        dropTarget.className += " blank-tile";
+    }
   }
 
   // drop
@@ -100,37 +194,42 @@ function App() {
       dragSource.focus();
       // update state
       let tmpTiles = tiles.slice();
-      if (tmpTiles[tmpTiles.length - 1] === blankTile) {
-        let tmpTile = tmpTiles[srcIndex];
-        tmpTiles[srcIndex] = tmpTiles[dstIndex];
-        tmpTiles[dstIndex] = tmpTile;
-        setTiles(tmpTiles);
+      if (!isBlankElement(dropTarget)) {
+        // drop target is not blank
+        if (tiles[srcIndex].width === tiles[dstIndex].width || tiles[srcIndex].row === tiles[dstIndex].row) {
+          let tmpTile = tmpTiles[srcIndex];
+          tmpTiles[srcIndex] = tmpTiles[dstIndex];
+          tmpTiles[dstIndex] = tmpTile;
+        } else if (tiles[srcIndex].width >= tiles[dstIndex].width) {
+          
+        }
       } else {
-        const blankTileIndex = tmpTiles.findIndex((item) => item.name === "");
-        const refChild = tmpTiles[srcIndex];
-        const newBlankTile = { ...blankTile, key: 1000 };
-        setBlankTile(newBlankTile);
-        tmpTiles = tmpTiles.filter((item, index) => item.name !== "" && index !== srcIndex);
-        tmpTiles.push(newBlankTile);
-        tmpTiles.splice(blankTileIndex, 0, refChild);
-        reOrder(tmpTiles);
+        // drop target is blank
+        if (tiles[srcIndex].width === tiles[dstIndex].width) {
+          // drag & drop width is same
+          let tmpTile = tmpTiles[srcIndex];
+          tmpTiles[srcIndex] = {
+            name: "",
+            type: "real",
+            width: tmpTiles[dstIndex].width,
+          };
+          tmpTiles[dstIndex] = tmpTile;
+        }
       }
-    }
-  }
+      // let tmpTile = tmpTiles[srcIndex];
+      // if(tmpTiles[dstIndex].name === "") 
+      //   tmpTiles[srcIndex] = {
+      //     name: "",
+      //     type: "real",
+      //     width: tmpTiles[dstIndex].width,
+      //   };
+      // else tmpTiles[srcIndex] = tmpTiles[dstIndex];
+      // tmpTiles[dstIndex] = tmpTile;
+      tmpTiles = tmpTiles.filter((item) => item.name !== "" || item.type === "real");
+      tmpTiles = reOrder(tmpTiles);
 
-  const reOrder = (tmpTiles: TileType[]) => {
-    console.log(tmpTiles);
-    
-    let row = 0, col = 0;
-    tmpTiles.forEach((item, index) => {
-      if((col + item.width) > 3) {
-        row ++;
-        col = 0;
-      }
-      tmpTiles[index] = { ...tmpTiles[index], row: row, col: col, key: item.name === "" ? 1000 : index };
-      col += item.width;
-    });
-    setTiles(tmpTiles);
+      setTiles(tmpTiles);
+    }
   }
 
   useEffect(() => {
@@ -141,35 +240,103 @@ function App() {
     if (dropTarget)
       dstIndex = getIndex(dropTarget);
 
-    // If dropTarget is not blank
-    const blankElement = document.getElementsByClassName("blank-tile")[0] as HTMLDivElement;
-    if (tiles[srcIndex] && tiles[dstIndex] && dropTarget && dropTarget !== blankElement) {
-      if (tiles[srcIndex].width === tiles[dstIndex].width) {
+    if (!tiles[srcIndex] || !tiles[dstIndex] || !dropTarget) return;
+    if (!isBlankElement(dropTarget)) {
+      // If dropTarget is not blank
+      if (tiles[srcIndex].width === tiles[dstIndex].width || tiles[srcIndex].row === tiles[dstIndex].row) {
+        // drag & drop target has same width
         dropTarget.className += " drag-over";
-        const newBlankTile = { ...blankTile, key: 1000 };
-        setBlankTile(newBlankTile);
-        var tmpTiles = tiles.slice();
-        tmpTiles = tmpTiles.filter((item) => item.name !== "");
-        tmpTiles.push(newBlankTile);
-        setTiles(tmpTiles);
-      } else {
-        const rowTiles = tiles.filter((item) => item.row === tiles[dstIndex].row);
-        const lastTile = rowTiles[rowTiles.length - 1];
-        const lastCol = (lastTile.col ?? 0) + lastTile.width;
-        console.log(tiles[dstIndex].row, rowTiles);
-        // Can't drop
-        if ((4 - lastCol) < tiles[srcIndex].width) {
-          const newBlankTile = { ...blankTile, key: 500 };
-          setBlankTile(newBlankTile);
+      } else if (tiles[srcIndex].width > tiles[dstIndex].width) {
+        // drag width > drop width
+        let blankTileCount = 0, i;
+        for (i = dstIndex; i < tiles.length; i++) {
+          if ((tiles[i].row ?? 0) > (tiles[dstIndex].row ?? 0)) break;
+          if (tiles[i].name === "") blankTileCount++;
+        }
+        if (tiles[srcIndex].width > blankTileCount + 1) {
+          // can't drop
           let tmpTiles = tiles.slice();
-          tmpTiles = tmpTiles.filter((item) => item.name !== "");
-          tmpTiles.splice((rowTiles[0].key ?? 0), 0, newBlankTile);
+          tmpTiles.splice(i, 0, {
+            name: "",
+            width: 4,
+            type: "fake",
+          });
           setTiles(tmpTiles);
-          dropTarget.focus();
         } else {
-          setBlankTile({ ...blankTile, key: 1000 });
+          // can drop
+          dropTarget.className += " drag-over";
+        }
+      } else {
+        // drag width < drop width
+        let blankTileCount = 0, i;
+        for (i = srcIndex; i < tiles.length; i++) {
+          if ((tiles[i].row ?? 0) > (tiles[srcIndex].row ?? 0)) break;
+          if (tiles[i].name === "") blankTileCount++;
+        }
+        if (tiles[dstIndex].width <= blankTileCount + 1) {
+          // can drop
+          dropTarget.className += " drag-over";
+        } else {
+          // can't drop
+          let tmpTiles = tiles.slice();
+          tmpTiles.splice((tiles[dstIndex].key ?? 0) + 1, 0, {
+            name: "",
+            width: 4,
+            type: "fake",
+          });
+          setTiles(tmpTiles);
         }
       }
+    } else {
+      // If drop element is blank element
+      if (tiles[srcIndex].width === tiles[dstIndex].width) {
+        // drag & drop width is same
+        dropTarget.className = dropTarget.className.replaceAll(" blank-tile", "");
+      } else if (tiles[srcIndex].width > tiles[dstIndex].width) {
+        // drag width > drop width
+        let blankElementCount = 0, i = dstIndex, startIndex = dstIndex, endIndex = dstIndex;
+        for (; tiles[i] && (tiles[i].row ?? 0) === (tiles[dstIndex].row ?? 0); i++) {
+          if (tiles[i].name !== "") break;
+          blankElementCount++;
+        }
+        if (blankElementCount >= tiles[srcIndex].width) endIndex = startIndex + tiles[srcIndex].width - 1;
+        else {
+          endIndex = i - 1;
+          for (i = dstIndex - 1; (tiles[i].row ?? 0) === (tiles[dstIndex].row ?? 0); i--) {
+            if (tiles[i].name !== "") break;
+            blankElementCount++;
+          }
+          if (blankElementCount >= tiles[srcIndex].width)
+            startIndex = endIndex - tiles[srcIndex].width + 1;
+        }
+        console.log(startIndex, endIndex);
+        if ((endIndex - startIndex + 1) === tiles[srcIndex].width) {
+          // can drop
+          let tmpTiles = tiles.slice();
+          tmpTiles.splice(startIndex, tiles[srcIndex].width);
+          tmpTiles.splice(startIndex, 0, {
+            name: "",
+            width: tiles[srcIndex].width,
+            type: "fake",
+          });
+          setTiles(tmpTiles);
+          console.log("can move");
+        } else {
+          // can't drop
+          let tmpTiles = tiles.slice();
+          tmpTiles.splice(endIndex + 1, 0, {
+            name: "",
+            width: 4,
+            type: "fake",
+          });
+          setTiles(tmpTiles);
+        }
+      }
+      // const srcWidth = tiles[srcIndex].width;
+      // let i = 0, emptyTileCount = 0;
+      // for (i = (tiles[dstIndex].key ?? 0); i < tiles.length; i ++) {
+      //   if()
+      // }
     }
   }, [dropTarget]);
 
@@ -202,7 +369,7 @@ function App() {
           {
             tiles.length ? (
               <React.Fragment>
-                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} width={item.width} onRemove={() => removeTile(index)} key={`tile-${item.key}`} className={`${item.key === 1000 ? "hidden" : ""}`} color={item.color ?? "0xFFFFFF"} />))}
+                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} width={item.width} onRemove={() => removeTile(index)} key={`tile-${item.key}`} className={`${item.key === 1000 ? "hidden" : ""}`} color={item.color ?? "0xFFFFFF"} type={item.type} />))}
               </React.Fragment>
             ) : (
               <div className="blank">

@@ -10,7 +10,6 @@ export const palette = [
     '#fc587a',
     '#670347',
     '#87b3a0',
-    '#ffffff',
 ];
 
 export const icons = {
@@ -68,13 +67,23 @@ export const icons = {
 };
 
 export const tileCatalogs: Array<TileType> = [
-    { name: 'Grid', tile: Grid, icon: icons.grid, color: palette[0],  width: 4 },
-    { name: 'Radial Gauge', tile: Grid, icon: icons.radialGauge, color: palette[1], width: 1 },
-    { name: 'Linear Gauge', tile: Grid, icon: icons.linearGauge, color: palette[2], width: 1 },
-    { name: 'Bar Chart', tile: Grid, icon: icons.barChart, color: palette[3], width: 1 },
-    { name: 'Column Chart', tile: Grid, icon: icons.columnChart, color: palette[4], width: 1 },
-    { name: 'Line Chart', tile: Grid, icon: icons.lineChart, color: palette[5], width: 1 },
-    { name: 'Bubble Chart', tile: Grid, icon: icons.bubbleChart, color: palette[6], width: 2 },
-    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph, color: palette[7], width: 1 },
-    { name: 'Blank', tile: Grid, icon: icons.blank, color: palette[8], width: 1 },
+    { name: 'Grid', tile: Grid, icon: icons.grid, color: palette[0],  width: 4, type: "real" },
+    { name: 'Radial Gauge', tile: Grid, icon: icons.radialGauge, color: palette[1], width: 1, type: "real" },
+    { name: 'Linear Gauge', tile: Grid, icon: icons.linearGauge, color: palette[2], width: 1, type: "real" },
+    { name: 'Bar Chart', tile: Grid, icon: icons.barChart, color: palette[3], width: 1, type: "real" },
+    { name: 'Column Chart', tile: Grid, icon: icons.columnChart, color: palette[4], width: 1, type: "real" },
+    { name: 'Line Chart', tile: Grid, icon: icons.lineChart, color: palette[5], width: 1, type: "real" },
+    { name: 'Bubble Chart', tile: Grid, icon: icons.bubbleChart, color: palette[6], width: 2, type: "real" },
+    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph, color: palette[7], width: 1, type: "real" },
+];
+
+export const testCatalogs: Array<TileType> = [
+    { name: 'Radial Gauge', tile: Grid, icon: icons.radialGauge, color: palette[1], width: 1, type: "real" },
+    { name: 'Linear Gauge', tile: Grid, icon: icons.linearGauge, color: palette[2], width: 1, type: "real" },
+    { name: 'Bar Chart', tile: Grid, icon: icons.barChart, color: palette[3], width: 1, type: "real" },   
+    { name: 'Bubble Chart', tile: Grid, icon: icons.bubbleChart, color: palette[6], width: 2, type: "real" }, 
+    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph, color: palette[7], width: 1, type: "real" },
+    { name: 'Grid', tile: Grid, icon: icons.grid, color: palette[0],  width: 4, type: "real" },
+    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph, color: palette[7], width: 1, type: "real" },
+    { name: 'Column Chart', tile: Grid, icon: icons.columnChart, color: palette[4], width: 1, type: "real" },
 ];

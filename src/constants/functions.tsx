@@ -20,4 +20,9 @@ export const getIndex = (e: HTMLDivElement) => {
         }
     }
     return -1;
+};
+
+export const isBlankElement = (e: HTMLDivElement) => {
+    if (e.children.length === 0) return true;
+    return false;
 }

@@ -8,11 +8,12 @@ type Props = {
   width: number;
   className: string;
   color: string;
+  type: string;
 };
 
-const Tile: React.FC<Props> = ({ header, content, onRemove, width, className, color }) => {
+const Tile: React.FC<Props> = ({ header, content, onRemove, width, className, color, type }) => {
   return header === "" ? (
-    <div className={classNames(`tile blank-tile w-x${width} drag-over`, className)}></div>
+    <div className={classNames(`tile ${type === "real" ? "blank-tile" : ""} w-x${width} drag-over`, className)}></div>
   ) : (
     <div className={`tile w-x${width}`} draggable={true} style={{backgroundColor: color}}>
       <div className="tile-container">
