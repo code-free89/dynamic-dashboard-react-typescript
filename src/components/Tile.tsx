@@ -1,15 +1,20 @@
 import React from 'react';
+import classNames from 'classnames';
 
 type Props = {
   header: string;
   content: any;
   onRemove: any;
-  width: string;
+  width: number;
+  className: string;
+  color: string;
 };
 
-const Tile: React.FC<Props> = ({ header, content, onRemove, width }) => {
-  return (
-    <div className={`tile w-${width}`} draggable={true}>
+const Tile: React.FC<Props> = ({ header, content, onRemove, width, className, color }) => {
+  return header === "" ? (
+    <div className={classNames(`tile blank-tile w-x${width} drag-over`, className)}></div>
+  ) : (
+    <div className={`tile w-x${width}`} draggable={true} style={{backgroundColor: color}}>
       <div className="tile-container">
         <div className="tile-header">{header}</div>
         <div className="buttons">

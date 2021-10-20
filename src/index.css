@@ -275,12 +275,11 @@ h4 {
 }
 
 .tile {
-    display: flex;
     flex-direction: column;
     flex: 0 0 auto;
     /* width: calc(25% - 1rem); */
     margin: 0.5rem;
-    height: 50vh;
+    height: 25rem;
     max-height: calc(50% - 1rem);
     overflow: hidden;
     background: white;
@@ -292,43 +291,39 @@ h4 {
     box-shadow: 0 1px 2px rgba(55, 63, 66, 0.07), 0 2px 4px rgba(55, 63, 66, 0.07), 0 4px 8px rgba(55, 63, 66, 0.07), 0 8px 16px rgba(55, 63, 66, 0.07), 0 16px 24px rgba(55, 63, 66, 0.07), 0 24px 32px rgba(55, 63, 66, 0.07);
 }
 
-.w-grid {
+.blank-tile {
+    background: transparent;
+}
+
+.w-x4 {
     width: calc(100% - 1rem);
 }
 
-.w-bubble {
+.w-x2 {
     width: calc(50% - 1rem);
 }
 
-.w-radial,
-.w-linear,
-.w-bar,
-.w-column,
-.w-line,
-.w-bullet,
-.w-blank {
+.w-x1 {
     width: calc(25% - 1rem);
 }
 
-@media only screen and (max-width: 1599px) {
-    .w-grid {
-        width: calc(100% - 1rem);
-    }
-    .w-bubble {
-        width: calc(50% - 1rem);
-    }
-    .w-radial,
-    .w-linear,
-    .w-bar,
-    .w-column,
-    .w-line,
-    .w-bullet,
-    .w-blank {
-        width: calc(25% - 1rem);
-    }
-}
 
-@media only screen and (max-width: 1079px) {
+/* @media only screen and (max-width: 1599px) {
+    .w-x4 {
+        width: calc(100% - 1rem);
+    }
+    
+    .w-x2 {
+        width: calc(50% - 1rem);
+    }
+    
+    .w-x1 {
+        width: calc(25% - 1rem);
+    }
+} */
+
+
+/* @media only screen and (max-width: 1079px) {
     .w-grid {
         width: calc(100% - 1rem);
     }
@@ -344,7 +339,7 @@ h4 {
     .w-blank {
         width: calc(25% - 1rem);
     }
-}
+} */
 
 @media only screen and (max-width: 1023px) {
     .w-grid {

@@ -1,7 +1,10 @@
 export interface TileType {
   name: string;
   key?: number;
-  width: string;
+  width: number;
   icon?: JSX.Element[];
   tile?: any;
+  row?: number;
+  col?: number;
+  color?: string;
 }

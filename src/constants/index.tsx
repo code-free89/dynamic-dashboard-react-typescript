@@ -6,6 +6,11 @@ export const palette = [
     '#ffca28',
     '#5c6bc0',
     '#bbdefb',
+    '#7ad6d8',
+    '#fc587a',
+    '#670347',
+    '#87b3a0',
+    '#ffffff',
 ];
 
 export const icons = {
@@ -62,29 +67,14 @@ export const icons = {
     ],
 };
 
-type widthType = {
-    [key in string]: number;
-}
-
-export const elementWidths: widthType = {
-    "grid": 4,
-    "radial": 1,
-    "linear": 1,
-    "bar": 1,
-    "column": 1,
-    "line": 1,
-    "bubble": 2,
-    "bullet": 1,
-};
-
 export const tileCatalogs: Array<TileType> = [
-    { name: 'Grid', tile: Grid, icon: icons.grid, width: "grid" },
-    { name: 'Radial Gauge', tile: Grid, icon: icons.radialGauge, width: "radial" },
-    { name: 'Linear Gauge', tile: Grid, icon: icons.linearGauge, width: "linear" },
-    { name: 'Bar Chart', tile: Grid, icon: icons.barChart, width: "bar" },
-    { name: 'Column Chart', tile: Grid, icon: icons.columnChart, width: "column" },
-    { name: 'Line Chart', tile: Grid, icon: icons.lineChart, width: "line" },
-    { name: 'Bubble Chart', tile: Grid, icon: icons.bubbleChart, width: "bubble" },
-    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph, width: "bullet" },
-    { name: 'Blank', tile: Grid, icon: icons.blank, width: "blank" },
+    { name: 'Grid', tile: Grid, icon: icons.grid, color: palette[0],  width: 4 },
+    { name: 'Radial Gauge', tile: Grid, icon: icons.radialGauge, color: palette[1], width: 1 },
+    { name: 'Linear Gauge', tile: Grid, icon: icons.linearGauge, color: palette[2], width: 1 },
+    { name: 'Bar Chart', tile: Grid, icon: icons.barChart, color: palette[3], width: 1 },
+    { name: 'Column Chart', tile: Grid, icon: icons.columnChart, color: palette[4], width: 1 },
+    { name: 'Line Chart', tile: Grid, icon: icons.lineChart, color: palette[5], width: 1 },
+    { name: 'Bubble Chart', tile: Grid, icon: icons.bubbleChart, color: palette[6], width: 2 },
+    { name: 'Bullet Graph', tile: Grid, icon: icons.bulletGraph, color: palette[7], width: 1 },
+    { name: 'Blank', tile: Grid, icon: icons.blank, color: palette[8], width: 1 },
 ];

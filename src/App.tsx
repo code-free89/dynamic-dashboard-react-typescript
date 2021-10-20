@@ -1,17 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { elementWidths, palette, tileCatalogs } from './constants';
+import { palette, tileCatalogs } from './constants';
 import { TileType } from './types';
 import Tile from './components/Tile';
+import { getIndex, getTileContent } from './constants/functions';
 function App() {
+  const [blankTile, setBlankTile] = useState<TileType>({
+    name: "",
+    width: 4,
+    key: 1000,
+  });
   const [key, setKey] = useState<number>(0);
 
   // tiles currently in use
   const getTiles = (): Array<TileType> => {
     const tileArray: Array<TileType> = [];
+    let row = 0;
+    let col = 0;
     for (let i = 0; i < 5; i++) {
-      tileArray.push({ name: tileCatalogs[i].name, key: i, width: tileCatalogs[i].width });
+      tileArray.push({ name: tileCatalogs[i].name, key: i, width: tileCatalogs[i].width, row: row, col: col, color: tileCatalogs[i].color });
+      col += tileCatalogs[i].width;
+      if (col > 3) {
+        col = 0;
+        row++;
+      }
     }
+    tileArray.push(blankTile);
     setKey(5);
     return tileArray;
   };
@@ -21,21 +35,10 @@ function App() {
   const [dragSource, setDragSource] = useState<HTMLDivElement>();
   const [dropTarget, setDropTarget] = useState<HTMLDivElement>();
 
-  // gets a tile content by name
-  const getTileContent = (name: string) => {
-    tileCatalogs.forEach((item) => {
-      if (item.name === name) {
-        return <div style={{ backgroundColor: palette[1] }}>
-          {item.tile}
-        </div>
-      }
-    });
-  };
-
   // adds a tile to the dashboard
   const addTile = (name: string) => {
     const tileCatalog = tileCatalogs.find((item) => item.name === name);
-    setTiles([...tiles, { name: name, key: key, width: tileCatalog ? tileCatalog.width : "full" }]);
+    setTiles([...tiles, { name: name, key: key, width: tileCatalog ? tileCatalog.width : 1, color: tileCatalog?.color }]);
     setKey(key + 1);
   };
 
@@ -49,6 +52,7 @@ function App() {
     setTiles(getTiles());
   }, []);
 
+  // drag start
   const onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     const target = event.target as HTMLDivElement;
     target.className += " drag-source";
@@ -58,23 +62,33 @@ function App() {
     setDragSource(target);
   }
 
+  // drag over
   const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     if (dragSource) {
       let tile = (event.target as HTMLDivElement).closest(".tile") as HTMLDivElement;
-      if (dragSource && tile && tile !== dragSource) {
+      const blankElement = document.getElementsByClassName("blank-tile")[0];
+      if (tile && tile !== dragSource) {
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
       }
-      if (tile !== dragSource && dropTarget !== tile) {
-        if (dropTarget) {
-          dropTarget.className = dropTarget.className.replaceAll("drag-over", "");
-        }
+      if (dropTarget !== tile) {
+        if (dropTarget && dropTarget !== blankElement)
+          dropTarget.className = dropTarget.className.replaceAll(" drag-over", "");
         if (tile)
           setDropTarget(tile);
       }
     }
   }
 
+  // drag end
+  const onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+    if (dragSource)
+      dragSource.className = dragSource.className.replaceAll(" drag-source", "");
+    if (dropTarget)
+      dropTarget.className = dropTarget.className.replaceAll(" drag-over", "");
+  }
+
+  // drop
   const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
     if (dragSource && dropTarget) {
       // finish drag/drop
@@ -83,47 +97,81 @@ function App() {
       // re-order HTML elements (optional here, we're updating the state later)
       const srcIndex = getIndex(dragSource);
       const dstIndex = getIndex(dropTarget);
-      // const refChild = srcIndex > dstIndex ? dropTarget : dropTarget.nextElementSibling;
-      // if(dragSource.parentElement)
-      //   dragSource.parentElement.insertBefore(dragSource, refChild);
-      // focus and view on the tile that was dragged
       dragSource.focus();
       // update state
-      console.log(dragSource);
       let tmpTiles = tiles.slice();
-      if (elementWidths[tmpTiles[srcIndex].width] === elementWidths[tmpTiles[dstIndex].width]) {
+      if (tmpTiles[tmpTiles.length - 1] === blankTile) {
         let tmpTile = tmpTiles[srcIndex];
         tmpTiles[srcIndex] = tmpTiles[dstIndex];
         tmpTiles[dstIndex] = tmpTile;
+        setTiles(tmpTiles);
+      } else {
+        const blankTileIndex = tmpTiles.findIndex((item) => item.name === "");
+        const refChild = tmpTiles[srcIndex];
+        const newBlankTile = { ...blankTile, key: 1000 };
+        setBlankTile(newBlankTile);
+        tmpTiles = tmpTiles.filter((item, index) => item.name !== "" && index !== srcIndex);
+        tmpTiles.push(newBlankTile);
+        tmpTiles.splice(blankTileIndex, 0, refChild);
+        reOrder(tmpTiles);
       }
-      setTiles(tmpTiles);
     }
   }
 
-  const onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
-    if (dragSource)
-      dragSource.className = dragSource.className.replaceAll("drag-source", "");
-    if (dropTarget)
-      dropTarget.className = dropTarget.className.replaceAll("drag-over", "");
+  const reOrder = (tmpTiles: TileType[]) => {
+    console.log(tmpTiles);
+    
+    let row = 0, col = 0;
+    tmpTiles.forEach((item, index) => {
+      if((col + item.width) > 3) {
+        row ++;
+        col = 0;
+      }
+      tmpTiles[index] = { ...tmpTiles[index], row: row, col: col, key: item.name === "" ? 1000 : index };
+      col += item.width;
+    });
+    setTiles(tmpTiles);
   }
 
   useEffect(() => {
-    if (dropTarget) {
+    let srcIndex = 2000;
+    let dstIndex = 2000;
+    if (dragSource)
+      srcIndex = getIndex(dragSource);
+    if (dropTarget)
+      dstIndex = getIndex(dropTarget);
 
-      dropTarget.className += " drag-over";
-    }
-  }, [dropTarget]);
-
-  function getIndex(e: HTMLDivElement) {
-    const p = e.parentElement;
-    if (p) {
-      for (let i = 0; i < p.children.length; i++) {
-        if (p.children[i] === e)
-          return i;
+    // If dropTarget is not blank
+    const blankElement = document.getElementsByClassName("blank-tile")[0] as HTMLDivElement;
+    if (tiles[srcIndex] && tiles[dstIndex] && dropTarget && dropTarget !== blankElement) {
+      if (tiles[srcIndex].width === tiles[dstIndex].width) {
+        dropTarget.className += " drag-over";
+        const newBlankTile = { ...blankTile, key: 1000 };
+        setBlankTile(newBlankTile);
+        var tmpTiles = tiles.slice();
+        tmpTiles = tmpTiles.filter((item) => item.name !== "");
+        tmpTiles.push(newBlankTile);
+        setTiles(tmpTiles);
+      } else {
+        const rowTiles = tiles.filter((item) => item.row === tiles[dstIndex].row);
+        const lastTile = rowTiles[rowTiles.length - 1];
+        const lastCol = (lastTile.col ?? 0) + lastTile.width;
+        console.log(tiles[dstIndex].row, rowTiles);
+        // Can't drop
+        if ((4 - lastCol) < tiles[srcIndex].width) {
+          const newBlankTile = { ...blankTile, key: 500 };
+          setBlankTile(newBlankTile);
+          let tmpTiles = tiles.slice();
+          tmpTiles = tmpTiles.filter((item) => item.name !== "");
+          tmpTiles.splice((rowTiles[0].key ?? 0), 0, newBlankTile);
+          setTiles(tmpTiles);
+          dropTarget.focus();
+        } else {
+          setBlankTile({ ...blankTile, key: 1000 });
+        }
       }
     }
-    return -1;
-  }
+  }, [dropTarget]);
 
   return (
     <div className="container">
@@ -154,7 +202,7 @@ function App() {
           {
             tiles.length ? (
               <React.Fragment>
-                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} width={item.width} onRemove={() => removeTile(index)} key={`tile-${item.key}`} />))}
+                {tiles.map((item, index) => (<Tile header={item.name} content={getTileContent(item.name)} width={item.width} onRemove={() => removeTile(index)} key={`tile-${item.key}`} className={`${item.key === 1000 ? "hidden" : ""}`} color={item.color ?? "0xFFFFFF"} />))}
               </React.Fragment>
             ) : (
               <div className="blank">
