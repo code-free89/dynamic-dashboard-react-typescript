@@ -7,6 +7,14 @@ import { getIndex, getTileContent, isBlankElement } from './constants/functions'
 function App() {
 
   const reOrder = (srcTiles: TileType[]) => {
+    // remove empty row
+    for(let i = 0; srcTiles.length && i <= (srcTiles[srcTiles.length - 1].row ?? 10); i ++) {
+      const rowTiles = srcTiles.filter((item) => item.row === i);
+      const noEmptyIndex = rowTiles.findIndex((item) => item.name !== "");
+      if(noEmptyIndex === -1) {
+        srcTiles.splice(srcTiles.findIndex((item) => item.row === i), rowTiles.length);
+      }
+    }
     let row = 0, col = 0;
     const tmpTiles: TileType[] = [];
     let index = 0;
@@ -139,9 +147,12 @@ function App() {
         event.dataTransfer.dropEffect = "move";
       }
       if (tile && dropTarget !== tile) {
+        // drop target should be changed
         let tmpTiles = tiles.slice();
         if (tiles[getIndex(tile)].type === "real") {
+          // current drop target is real
           if (dropTarget && getIndex(dropTarget) !== -1 && tiles[getIndex(dropTarget)].type === "fake" && tiles[getIndex(dropTarget)].width !== 4) {
+            // if previous dropTarget is fake, should recover real elements
             const dropElement = tiles[getIndex(dropTarget)];
             const dropIndex = getIndex(dropTarget);
             tmpTiles.splice(dropIndex, 1);
@@ -150,6 +161,8 @@ function App() {
                 name: "",
                 type: "real",
                 width: 1,
+                row: tiles[getIndex(dropTarget)].row,
+                col: tiles[getIndex(dropTarget)].col,
               });
           }
           tmpTiles = tmpTiles.filter((item) => item.name !== "" || item.type === "real");
@@ -172,6 +185,7 @@ function App() {
 
   // drag end
   const onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+    setTiles(tiles.filter((item) => item.type !== "fake"));
     if (dragSource)
       dragSource.className = dragSource.className.replaceAll(" drag-source", "");
     if (dropTarget) {
@@ -197,34 +211,47 @@ function App() {
       if (!isBlankElement(dropTarget)) {
         // drop target is not blank
         if (tiles[srcIndex].width === tiles[dstIndex].width || tiles[srcIndex].row === tiles[dstIndex].row) {
+          // drag & drop width is same
           let tmpTile = tmpTiles[srcIndex];
-          tmpTiles[srcIndex] = tmpTiles[dstIndex];
+          tmpTiles[srcIndex] = {
+            ...tmpTiles[dstIndex]
+          };
           tmpTiles[dstIndex] = tmpTile;
-        } else if (tiles[srcIndex].width >= tiles[dstIndex].width) {
-          
+        } else {
+          // drag width != drop width
+          if(dropTarget.className.includes("drag-over")) {
+            let tmpTile = tmpTiles[srcIndex];
+            tmpTiles[srcIndex] = tmpTiles[dstIndex];
+            tmpTiles[dstIndex] = tmpTile;
+          } else {
+            let i = dstIndex;
+            for (; i < tmpTiles.length; i ++) {
+              if (tmpTiles[i].row !== tmpTiles[dstIndex].row) break;
+            }
+            let tmpTile = tmpTiles[srcIndex];
+            tmpTiles.splice(srcIndex, 1);
+            tmpTiles.splice(i, 0, tmpTile);
+          }
         }
       } else {
         // drop target is blank
-        if (tiles[srcIndex].width === tiles[dstIndex].width) {
+        if (tiles[srcIndex].width === tiles[dstIndex].width || tiles[srcIndex].row === tiles[dstIndex].row) {
           // drag & drop width is same
           let tmpTile = tmpTiles[srcIndex];
           tmpTiles[srcIndex] = {
             name: "",
             type: "real",
             width: tmpTiles[dstIndex].width,
+            row: tmpTile.row,
+            col: tmpTile.col,
           };
-          tmpTiles[dstIndex] = tmpTile;
+          tmpTiles[dstIndex] = {
+            ...tmpTile,
+            row: tmpTiles[dstIndex].row,
+            col: tmpTiles[dstIndex].col,
+          };
         }
       }
-      // let tmpTile = tmpTiles[srcIndex];
-      // if(tmpTiles[dstIndex].name === "") 
-      //   tmpTiles[srcIndex] = {
-      //     name: "",
-      //     type: "real",
-      //     width: tmpTiles[dstIndex].width,
-      //   };
-      // else tmpTiles[srcIndex] = tmpTiles[dstIndex];
-      // tmpTiles[dstIndex] = tmpTile;
       tmpTiles = tmpTiles.filter((item) => item.name !== "" || item.type === "real");
       tmpTiles = reOrder(tmpTiles);
 
@@ -260,6 +287,7 @@ function App() {
             name: "",
             width: 4,
             type: "fake",
+            row: (tiles[dstIndex].row ?? 0) + 1,
           });
           setTiles(tmpTiles);
         } else {
@@ -283,13 +311,14 @@ function App() {
             name: "",
             width: 4,
             type: "fake",
+            row: (tiles[dstIndex].row ?? 0) + 1,
           });
           setTiles(tmpTiles);
         }
       }
     } else {
       // If drop element is blank element
-      if (tiles[srcIndex].width === tiles[dstIndex].width) {
+      if (tiles[srcIndex].width === tiles[dstIndex].width || tiles[srcIndex].row === tiles[dstIndex].row) {
         // drag & drop width is same
         dropTarget.className = dropTarget.className.replaceAll(" blank-tile", "");
       } else if (tiles[srcIndex].width > tiles[dstIndex].width) {
@@ -309,7 +338,6 @@ function App() {
           if (blankElementCount >= tiles[srcIndex].width)
             startIndex = endIndex - tiles[srcIndex].width + 1;
         }
-        console.log(startIndex, endIndex);
         if ((endIndex - startIndex + 1) === tiles[srcIndex].width) {
           // can drop
           let tmpTiles = tiles.slice();
@@ -318,9 +346,9 @@ function App() {
             name: "",
             width: tiles[srcIndex].width,
             type: "fake",
+            row: tiles[dstIndex].row,
           });
           setTiles(tmpTiles);
-          console.log("can move");
         } else {
           // can't drop
           let tmpTiles = tiles.slice();
@@ -328,15 +356,11 @@ function App() {
             name: "",
             width: 4,
             type: "fake",
+            row: (tiles[dstIndex].row ?? 0) + 1,
           });
           setTiles(tmpTiles);
         }
       }
-      // const srcWidth = tiles[srcIndex].width;
-      // let i = 0, emptyTileCount = 0;
-      // for (i = (tiles[dstIndex].key ?? 0); i < tiles.length; i ++) {
-      //   if()
-      // }
     }
   }, [dropTarget]);
 
